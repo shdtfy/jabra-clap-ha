@@ -8,37 +8,52 @@ Eine experimentelle Home-Assistant-App zur Erkennung von Doppelklatschen über e
 
 ## Funktionen
 
-- Doppelklatsch-Erkennung über den Jabra Link 390
-- Erkennt kurze, scharfe Klatschimpulse statt nur allgemeine Lautstärke
-- Auswertung von Peak, RMS, Crest Factor, Sharpness und Impulsdauer
+- Doppelklatsch-Erkennung über einen Jabra Link 390
+- Erkennung kurzer, scharfer Klatschimpulse statt einfacher Lautstärkeschwellen
+- Auswertung von Peak, RMS, Rise Factor, Crest Factor, Sharpness und Impulsdauer
 - Einstellbares Zeitfenster zwischen beiden Klatschern
 - Lokaler Home-Assistant-Webhook als Trigger
 - Einstellbare Empfindlichkeit
-- Keine Speicherung von Sprach- oder Audiodaten
-- Läuft parallel zu Home Assistant Assist Satellite
+- Keine Speicherung oder Aufzeichnung von Audiodaten
+- Kann parallel zu Home Assistant Assist Satellite betrieben werden
 
 ## Installation
 
-1. In Home Assistant zu  
-   **Einstellungen → Apps → App-Store → Repositories** gehen.
+1. Öffne in Home Assistant:
 
-2. Dieses Repository hinzufügen:
+   **Einstellungen → Apps → App-Store → Repositories**
+
+2. Füge dieses Repository hinzu:
 
    `https://github.com/shdtfy/jabra-clap-ha`
 
-3. Im App-Store nach **Jabra Double Clap** suchen.
+3. Suche im App-Store nach **Jabra Double Clap**.
 
-4. App installieren.
+4. Installiere die App.
 
-5. Unter **Konfiguration** die gewünschten Werte einstellen.
+5. Öffne anschließend den Tab **Konfiguration**.
 
-6. App starten und im **Protokoll** testen.
+6. Vergib eine eigene, zufällige `webhook_id`.
+
+7. Starte die App und prüfe den Tab **Protokoll**.
+
+## Webhook einrichten
+
+Die App enthält absichtlich keine feste Webhook-ID.
+
+Jede Installation sollte eine eigene, zufällige ID verwenden.
+
+Beispiel:
+
+`jabra_double_clap_DEINE_ZUFALLS_ID`
+
+Behandle die Webhook-ID wie ein Passwort und veröffentliche sie nicht in einem öffentlichen Repository.
+
+In der Home-Assistant-Automation muss exakt dieselbe ID verwendet werden.
 
 ## Beispiel-Automation
 
-Die App löst bei einem erkannten Doppelklatschen einen lokalen Home-Assistant-Webhook aus.
-
-Beispiel:
+Dieses Beispiel schaltet eine Schlafzimmerlampe bei jedem erkannten Doppelklatschen um:
 
 ```yaml
 alias: Schlafzimmer - Doppelklatschen Licht
@@ -50,42 +65,40 @@ triggers:
     local_only: true
 
 actions:
-  - action: switch.toggle
+  - action: light.toggle
     target:
-      entity_id:
-        - switch.licht
-        - switch.pv_anlage
+      entity_id: light.schlafzimmer
 
 mode: single
 ```
 
-Die `webhook_id` muss mit der ID in der Konfiguration von **Jabra Double Clap** übereinstimmen.
+Passe `light.schlafzimmer` an die Entity-ID deiner gewünschten Lampe oder Lichtgruppe an.
 
 ## Wie die Erkennung funktioniert
 
-Die App reagiert nicht einfach auf jedes laute Geräusch.
+Jabra Double Clap reagiert nicht einfach auf jedes laute Geräusch.
 
-Ein möglicher Klatscher wird anhand mehrerer Merkmale bewertet:
+Ein möglicher Klatscher wird anhand mehrerer Signalmerkmale bewertet:
 
 - **Peak**  
-  maximale Lautstärkespitze
+  Maximale Lautstärkespitze.
 
 - **RMS**  
-  durchschnittliche Signalenergie
+  Durchschnittliche Signalenergie.
 
 - **Rise Factor**  
-  wie stark sich der Impuls vom normalen Raumpegel abhebt
+  Bewertet, wie stark sich ein Geräusch vom normalen Raumpegel abhebt.
 
 - **Crest Factor**  
-  Verhältnis zwischen Peak und durchschnittlicher Lautstärke
+  Verhältnis zwischen Lautstärkespitze und durchschnittlichem Pegel.
 
 - **Sharpness**  
-  bewertet, wie kurz und scharf das Geräusch ist
+  Bewertet, wie kurz und scharf ein Geräusch ist.
 
 - **Impulsdauer**  
-  ein Klatscher muss kurz genug sein
+  Ein Klatscher muss innerhalb einer kurzen Zeit wieder abfallen.
 
-Erst wenn zwei passende Klatschimpulse innerhalb des eingestellten Zeitfensters erkannt werden, wird der Webhook ausgelöst.
+Erst wenn zwei passende Klatschimpulse innerhalb des eingestellten Zeitfensters erkannt werden, wird der Home-Assistant-Webhook ausgelöst.
 
 ## Unterstützte Hardware
 
@@ -100,47 +113,50 @@ Andere PulseAudio-kompatible Mikrofone können ebenfalls funktionieren.
 
 ## Datenschutz
 
-Die App:
+Jabra Double Clap:
 
 - speichert keine Audiodateien
 - zeichnet keine Gespräche auf
 - transkribiert keine Sprache
 - analysiert ausschließlich laufende Audiosignalwerte
+- verwendet einen lokalen Home-Assistant-Webhook
 
 ## Status
 
 Die App befindet sich aktuell im experimentellen Stadium.
 
-Je nach:
+Je nach Raum, Mikrofonposition, Abstand, Fernseher, Musik und anderen Hintergrundgeräuschen kann Feintuning erforderlich sein.
 
-- Raumgröße
-- Mikrofonposition
-- Hintergrundgeräuschen
-- Fernseher oder Musik
-- Abstand zum Mikrofon
+## Dokumentation
 
-kann Feintuning notwendig sein.
+Eine ausführliche Beschreibung aller Einstellungen und Hinweise zum Feintuning findest du hier:
+
+[`jabra_clap/DOCS.md`](jabra_clap/DOCS.md)
 
 ## Repository-Struktur
 
 ```text
 jabra-clap-ha/
-├── repository.yaml
-├── README.md
 ├── LICENSE
+├── README.md
+├── repository.yaml
 └── jabra_clap/
-    ├── config.yaml
-    ├── Dockerfile
-    ├── clap.py
-    ├── icon.png
-    ├── logo.png
-    ├── README.md
+    ├── CHANGELOG.md
     ├── DOCS.md
-    └── CHANGELOG.md
+    ├── Dockerfile
+    ├── README.md
+    ├── clap.py
+    ├── config.yaml
+    ├── icon.png
+    └── logo.png
 ```
+
+## Lizenz
+
+Dieses Projekt steht unter der MIT-Lizenz.
 
 ## Autor
 
 **Filo**
 
-Home Assistant Projekt: Jabra Double Clap
+Home Assistant Projekt: **Jabra Double Clap**
