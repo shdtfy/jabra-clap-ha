@@ -1,5 +1,5 @@
 name: "Jabra Double Clap"
-version: "1.0.7"
+version: "1.0.8"
 slug: "jabra_clap"
 description: "Jabra Double Clap für Home Assistant • entwickelt von Filo"
 url: "https://github.com/shdtfy/jabra-clap-ha"
@@ -24,7 +24,7 @@ options:
   min_gap_ms: 180
   max_gap_ms: 650
   cooldown_ms: 2500
-  webhook_id: "jabra_double_clap_J1K1Tg2X4Y5v3aOoyLCQ7WJe"
+  webhook_id: null
 
 schema:
   device_match: str
@@ -37,4 +37,4 @@ schema:
   min_gap_ms: int
   max_gap_ms: int
   cooldown_ms: int
-  webhook_id: str
+  webhook_id: password
