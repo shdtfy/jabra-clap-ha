@@ -1,16 +1,14 @@
 name: "Jabra Double Clap"
-version: "1.0.1"
+version: "1.0.2"
 slug: "jabra_clap"
-description: "Erkennt Doppelklatschen über einen Jabra-Link und sendet ein Home-Assistant-Event."
+description: "Erkennt Doppelklatschen über einen Jabra-Link und triggert einen lokalen Home-Assistant-Webhook."
 url: "https://github.com/shdtfy/jabra-clap-ha"
 stage: experimental
 startup: application
 boot: auto
 init: false
 audio: true
-homeassistant_api: true
-hassio_api: true
-hassio_role: default
+
 arch:
   - aarch64
   - amd64
@@ -23,6 +21,7 @@ options:
   min_gap_ms: 180
   max_gap_ms: 850
   cooldown_ms: 1800
+  webhook_id: "jabra_double_clap_J1K1Tg2X4Y5v3aOoyLCQ7WJe"
 
 schema:
   device_match: str
@@ -32,3 +31,4 @@ schema:
   min_gap_ms: int
   max_gap_ms: int
   cooldown_ms: int
+  webhook_id: str
