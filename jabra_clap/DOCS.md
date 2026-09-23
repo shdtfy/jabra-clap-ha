@@ -2,23 +2,40 @@
 
 ## Übersicht
 
-Jabra Double Clap ist eine Home-Assistant-App zur Erkennung eines Doppelklatschens über ein angeschlossenes Jabra-Audiogerät. Entwickelt wurde sie für einen **Jabra Speak2 75 über Jabra Link 390**, kann aber auch mit anderen PulseAudio-kompatiblen Mikrofoneingängen funktionieren.
+Jabra Double Clap ist eine Home-Assistant-App zur Erkennung eines Doppelklatschens über ein angeschlossenes Jabra-Audiogerät.
 
-Die App speichert keine Audiodateien. Sie verarbeitet den Audiostream in kleinen Zeitfenstern und bewertet nur Signalmerkmale.
+Entwickelt und getestet wurde sie mit einem **Jabra Speak2 75 über Jabra Link 390** unter Home Assistant OS.
+
+Die App speichert keine Audiodateien. Sie verarbeitet den Audiostream ausschließlich in kleinen Zeitfenstern und wertet Signalmerkmale aus.
 
 ## Funktionsweise
 
-Ein Klatscher wird nicht nur als „lautes Geräusch“ gewertet. Die App prüft mehrere Merkmale:
+Ein Klatscher wird nicht nur anhand seiner Lautstärke erkannt.
 
-- **Peak**: maximale Lautstärkespitze
-- **RMS**: mittlere Signalenergie
-- **Rise Factor**: wie stark sich der Impuls vom normalen Raumpegel abhebt
-- **Crest Factor**: Verhältnis von Peak zu RMS
-- **Sharpness**: wie schnell und scharf sich das Signal verändert
-- **Pulsdauer**: ein Klatscher muss kurz sein
-- **Gap**: Abstand zwischen erstem und zweitem Klatscher
+Die App bewertet mehrere Eigenschaften gleichzeitig:
 
-Erst wenn zwei passende Impulse innerhalb des erlaubten Zeitfensters erkannt werden, wird der Webhook ausgelöst.
+- **Peak**  
+  Maximale Lautstärkespitze eines Impulses.
+
+- **RMS**  
+  Durchschnittliche Signalenergie während des Impulses.
+
+- **Rise Factor**  
+  Verhältnis zwischen aktuellem Pegel und normalem Raumpegel.
+
+- **Crest Factor**  
+  Verhältnis zwischen Peak und RMS.
+
+- **Sharpness**  
+  Bewertet, wie schnell und scharf sich das Audiosignal verändert.
+
+- **Pulsdauer**  
+  Ein echter Klatscher sollte nur sehr kurz anhalten.
+
+- **Gap**  
+  Zeitlicher Abstand zwischen erstem und zweitem Klatscher.
+
+Erst wenn zwei passende Klatschimpulse innerhalb des erlaubten Zeitfensters erkannt werden, wird der konfigurierte Home-Assistant-Webhook ausgelöst.
 
 ## Standardkonfiguration
 
@@ -27,20 +44,38 @@ Erst wenn zwei passende Impulse innerhalb des erlaubten Zeitfensters erkannt wer
 | `device_match` | `Jabra Link 390` | Text, nach dem im Namen der Audioquelle gesucht wird |
 | `peak_threshold` | `0.55` | Mindest-Peak |
 | `rms_threshold` | `0.08` | Mindest-RMS |
-| `rise_factor` | `3.5` | Mindestanstieg gegenüber dem Raumpegel |
+| `rise_factor` | `3.5` | Mindestanstieg gegenüber dem normalen Raumpegel |
 | `min_crest_factor` | `3.4` | Mindest-Crest-Factor |
 | `min_sharpness` | `0.55` | Mindest-Schärfe des Impulses |
 | `max_pulse_ms` | `120` | Maximale Dauer eines Klatschimpulses |
-| `min_gap_ms` | `180` | Minimaler Abstand zwischen zwei Klatschern |
-| `max_gap_ms` | `650` | Maximaler Abstand zwischen zwei Klatschern |
+| `min_gap_ms` | `180` | Minimaler Abstand zwischen beiden Klatschern |
+| `max_gap_ms` | `650` | Maximaler Abstand zwischen beiden Klatschern |
 | `cooldown_ms` | `2500` | Sperrzeit nach erfolgreicher Erkennung |
-| `webhook_id` | individuell | ID des lokalen Home-Assistant-Webhooks |
+| `webhook_id` | individuell | Eigene geheime Webhook-ID |
+
+## Webhook-Sicherheit
+
+Ab Version 1.0.8 enthält das öffentliche Repository absichtlich keine feste Webhook-ID mehr.
+
+Die `webhook_id` muss pro Installation selbst vergeben werden.
+
+Verwende am besten eine lange, zufällige Zeichenfolge, zum Beispiel:
+
+```text
+jabra_double_clap_DEINE_ZUFALLS_ID
+```
+
+Behandle diese ID wie ein Passwort.
+
+Sie sollte nicht öffentlich in GitHub, Foren oder Screenshots veröffentlicht werden.
+
+In der Home-Assistant-Automation sollte zusätzlich `local_only: true` verwendet werden.
 
 ## Home-Assistant-Automation
 
-Lege eine Automation mit demselben `webhook_id` an, das in der App-Konfiguration steht.
+Die Automation muss exakt dieselbe `webhook_id` verwenden wie die App.
 
-Beispiel:
+Beispiel für eine Schlafzimmerlampe:
 
 ```yaml
 alias: Schlafzimmer - Doppelklatschen Licht
@@ -52,22 +87,24 @@ triggers:
     local_only: true
 
 actions:
-  - action: switch.toggle
+  - action: light.toggle
     target:
-      entity_id:
-        - switch.licht
-        - switch.pv_anlage
+      entity_id: light.schlafzimmer
 
 mode: single
 ```
 
-`switch.pv_anlage` ist hier nur ein Beispiel für eine vorhandene zweite Schalt-Entität. Passe die Entity-IDs an dein System an.
+Passe `light.schlafzimmer` an die Entity-ID deiner gewünschten Lampe oder Lichtgruppe an.
 
 ## Testen
 
-Öffne **Jabra Double Clap → Protokoll** und klatsche zweimal.
+Öffne:
 
-Bei einer erfolgreichen Erkennung sollte ungefähr Folgendes erscheinen:
+**Jabra Double Clap → Protokoll**
+
+und klatsche zweimal.
+
+Bei erfolgreicher Erkennung sollte ungefähr Folgendes erscheinen:
 
 ```text
 Klatsch-Kandidat: peak=..., rms=..., crest=..., sharpness=..., dauer=...
@@ -79,63 +116,111 @@ DOPPELKLATSCH ERKANNT -> Webhook ausgelöst
 
 ## Feintuning
 
-### Reagiert auf zu viele Geräusche
+### Die App reagiert auf zu viele Geräusche
 
-Erhöhe schrittweise:
+Erhöhe schrittweise einen oder mehrere dieser Werte:
 
-- `peak_threshold`
-- `rms_threshold`
-- `rise_factor`
-- `min_crest_factor`
-- `min_sharpness`
+```text
+peak_threshold
+rms_threshold
+rise_factor
+min_crest_factor
+min_sharpness
+```
 
-Oder verkleinere `max_pulse_ms`.
+Alternativ kannst du `max_pulse_ms` verkleinern.
 
-### Erkennt echte Klatscher, löst aber nicht aus
+Dadurch werden nur noch kürzere und schärfere Impulse akzeptiert.
 
-Wenn im Log immer wieder nur **„1. Klatscher akzeptiert“** erscheint, passt meist das Zeitfenster nicht.
+### Echte Klatscher werden erkannt, aber es wird kein Doppelklatschen ausgelöst
 
-Dann kannst du beispielsweise versuchen:
+Wenn im Protokoll immer wieder nur folgendes erscheint:
+
+```text
+1. Klatscher akzeptiert
+```
+
+ist meist das Zeitfenster zwischen beiden Klatschern zu klein.
+
+Versuche beispielsweise:
 
 ```text
 min_gap_ms: 150
 max_gap_ms: 1000
 ```
 
-### Erkennt gar nichts
+### Es wird gar kein Klatscher erkannt
 
-Senke zuerst vorsichtig:
+Senke zunächst vorsichtig:
 
 ```text
 peak_threshold
 rms_threshold
 ```
 
-Danach im Log prüfen, ob wieder `Klatsch-Kandidat` erscheint.
+Prüfe anschließend im Protokoll, ob wieder `Klatsch-Kandidat` erscheint.
+
+### Sprache wird als Klatschen erkannt
+
+Erhöhe bevorzugt:
+
+```text
+min_crest_factor
+min_sharpness
+rise_factor
+```
+
+Sprache ist normalerweise länger und weniger impulsartig als ein echter Klatscher.
 
 ## Audioquelle
 
-Beim Start listet die App die verfügbaren PulseAudio-Quellen auf und sucht nach `device_match`.
+Beim Start listet die App die verfügbaren PulseAudio-Quellen auf.
 
-Für den Jabra Link 390 sieht der Eingang beispielsweise so aus:
+Anschließend wird nach dem Text aus `device_match` gesucht.
+
+Für einen Jabra Link 390 kann der Mikrofoneingang beispielsweise so aussehen:
 
 ```text
 alsa_input.usb-_Jabra_Link_390_...mono-fallback
 ```
 
-## Assist Satellite
+Im Protokoll sollte anschließend etwa Folgendes stehen:
 
-Die App kann parallel zu Home Assistant Assist Satellite laufen. Assist Satellite kann weiterhin Wakewords und Sprachbefehle verarbeiten, während Jabra Double Clap denselben Audio-Stack für die Klatscherkennung nutzt.
+```text
+Passende Audioquelle gefunden: ...
+Benutze Mikrofon: ...
+```
+
+## Nutzung zusammen mit Assist Satellite
+
+Jabra Double Clap kann parallel zu Home Assistant Assist Satellite betrieben werden.
+
+Assist Satellite verarbeitet weiterhin Wakewords und Sprachbefehle, während Jabra Double Clap denselben Audio-Stack zur Erkennung kurzer Klatschimpulse nutzt.
+
+Je nach Hardware und Auslastung kann das Verhalten variieren.
 
 ## Datenschutz
 
-- Keine Audiodateien werden gespeichert.
-- Keine Sprache wird transkribiert.
-- Es werden nur laufend Signalwerte berechnet.
-- Der Webhook sollte mit `local_only: true` verwendet werden.
+Die App:
 
-## Hinweise
+- speichert keine Audiodateien
+- erstellt keine Sprachaufzeichnungen
+- transkribiert keine Sprache
+- sendet keine Audiodaten an externe Dienste
+- berechnet lediglich Signalmerkmale des laufenden Mikrofonstreams
 
-Die App ist derzeit **experimentell**. Unterschiedliche Räume, Mikrofonpositionen, Fernseher, Musik und andere impulsartige Geräusche können das Ergebnis beeinflussen.
+## Automatischer Start
+
+In Home Assistant kann **Beim Systemstart starten** aktiviert werden.
+
+Zusätzlich empfiehlt sich **Watchdog**, damit die App bei einem unerwarteten Absturz automatisch neu gestartet wird.
+
+## Status
+
+Jabra Double Clap ist derzeit als **experimentell** gekennzeichnet.
+
+Unterschiedliche Räume, Mikrofonpositionen und Hintergrundgeräusche können Feintuning notwendig machen.
+
+## Autor
 
 **Entwickelt von Filo**
