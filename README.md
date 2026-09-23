@@ -6,7 +6,7 @@
 
 Double Clap überwacht einen kompatiblen Mikrofoneingang und erkennt zwei kurze, scharfe Klatschimpulse. Bei erfolgreicher Erkennung wird ein lokaler Home-Assistant-Webhook ausgelöst.
 
-**Entwickelt von Filo**
+**Entwickelt von Filo Mahlich**
 
 ## Funktionen
 
@@ -162,6 +162,6 @@ Dieses Projekt steht unter der MIT-Lizenz.
 
 ## Autor
 
-**Filo**
+**Filo Mahlich**
 
 Home Assistant Projekt: **Double Clap**
