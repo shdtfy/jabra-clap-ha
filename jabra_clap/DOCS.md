@@ -207,4 +207,4 @@ Double Clap ist derzeit **experimentell**.
 
 ## Autor
 
-**Entwickelt von Filo**
+**Entwickelt von Filo Mahlich**

@@ -14,6 +14,7 @@ Alle wichtigen Änderungen an **Double Clap** werden hier dokumentiert.
 - Webhook-ID wird nicht mehr im App-Protokoll ausgegeben
 - Neues Double-Clap-Branding und neues Logo
 - README, App-README und Dokumentation vollständig überarbeitet
+- Maintainer- und Autorenangabe auf **Filo Mahlich** aktualisiert
 - Interner Slug `jabra_clap` bleibt aus Kompatibilitätsgründen bestehen
 
 ## 1.0.8

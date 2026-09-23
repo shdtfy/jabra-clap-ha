@@ -1,7 +1,7 @@
 name: "Double Clap"
 version: "1.1.0"
 slug: "jabra_clap"
-description: "Lokale Doppelklatsch-Erkennung für Home Assistant • entwickelt von Filo"
+description: "Lokale Doppelklatsch-Erkennung für Home Assistant • entwickelt von Filo Mahlich"
 url: "https://github.com/shdtfy/jabra-clap-ha"
 stage: experimental
 startup: application

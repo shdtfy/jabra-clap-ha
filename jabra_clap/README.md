@@ -2,7 +2,7 @@
 
 ![Double Clap](logo.png)
 
-**Lokale Doppelklatsch-Erkennung für Home Assistant · entwickelt von Filo**
+**Lokale Doppelklatsch-Erkennung für Home Assistant · entwickelt von Filo Mahlich**
 
 Double Clap überwacht einen PulseAudio-kompatiblen Mikrofoneingang und erkennt zwei kurze, scharfe Klatschimpulse. Bei erfolgreicher Erkennung wird ein lokaler Home-Assistant-Webhook ausgelöst.
 
