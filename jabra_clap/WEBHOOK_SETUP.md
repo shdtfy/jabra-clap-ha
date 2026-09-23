@@ -1,0 +1,22 @@
+# Webhook-Sicherheit
+
+Ab Version 1.0.8 enthält das öffentliche Repository **keine feste Webhook-ID mehr**.
+
+Die `webhook_id` ist eine Pflichtangabe in der App-Konfiguration und wird in Home Assistant als Passwortfeld behandelt.
+
+Für deine eigene Installation kannst du zum Beispiel diese zufällig erzeugte ID verwenden:
+
+`jabra_double_clap_LrdFz1L1it5ueYIp6PlUyvADZhA8PM2Y`
+
+Verwende exakt dieselbe ID in deiner Home-Assistant-Automation:
+
+```yaml
+triggers:
+  - trigger: webhook
+    webhook_id: jabra_double_clap_LrdFz1L1it5ueYIp6PlUyvADZhA8PM2Y
+    allowed_methods:
+      - POST
+    local_only: true
+```
+
+Behandle die Webhook-ID wie ein Passwort und veröffentliche sie nicht im Repository.
