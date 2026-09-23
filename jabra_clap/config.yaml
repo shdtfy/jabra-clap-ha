@@ -1,5 +1,5 @@
 name: "Jabra Double Clap"
-version: "1.0.0"
+version: "1.0.1"
 slug: "jabra_clap"
 description: "Erkennt Doppelklatschen über einen Jabra-Link und sendet ein Home-Assistant-Event."
 url: "https://github.com/shdtfy/jabra-clap-ha"
@@ -9,7 +9,8 @@ boot: auto
 init: false
 audio: true
 homeassistant_api: true
-
+hassio_api: true
+hassio_role: default
 arch:
   - aarch64
   - amd64
