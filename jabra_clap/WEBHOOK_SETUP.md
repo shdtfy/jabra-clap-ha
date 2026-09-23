@@ -6,7 +6,7 @@ Die `webhook_id` ist eine Pflichtangabe in der App-Konfiguration und wird in Hom
 
 Für deine eigene Installation kannst du zum Beispiel diese zufällig erzeugte ID verwenden:
 
-`jabra_double_clap_LrdFz1L1it5ueYIp6PlUyvADZhA8PM2Y`
+``jabra_double_clap_DEINE_ZUFALLS_ID``
 
 Verwende exakt dieselbe ID in deiner Home-Assistant-Automation:
 
