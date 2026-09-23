@@ -13,7 +13,7 @@ Verwende exakt dieselbe ID in deiner Home-Assistant-Automation:
 ```yaml
 triggers:
   - trigger: webhook
-    webhook_id: jabra_double_clap_LrdFz1L1it5ueYIp6PlUyvADZhA8PM2Y
+    webhook_id: DEINE_WEBHOOK_ID
     allowed_methods:
       - POST
     local_only: true
