@@ -1,6 +1,10 @@
 # Changelog
 
 Alle wichtigen Änderungen an **Double Clap** werden hier dokumentiert.
+## 1.1.1
+
+- Autoren- und Maintainer-Angabe auf **Filo Mahlich** vereinheitlicht
+- App-Metadaten aktualisiert
 
 ## 1.1.0
 
