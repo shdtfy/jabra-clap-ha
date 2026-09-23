@@ -1,7 +1,7 @@
 name: "Jabra Double Clap"
-version: "1.0.2"
+version: "1.0.3"
 slug: "jabra_clap"
-description: "Erkennt Doppelklatschen über einen Jabra-Link und triggert einen lokalen Home-Assistant-Webhook."
+description: "Erkennt Doppelklatschen über einen Jabra-Link anhand kurzer, scharfer Impulse und triggert einen lokalen Home-Assistant-Webhook."
 url: "https://github.com/shdtfy/jabra-clap-ha"
 stage: experimental
 startup: application
@@ -15,12 +15,15 @@ arch:
 
 options:
   device_match: "Jabra Link 390"
-  peak_threshold: 0.30
-  rms_threshold: 0.035
-  rise_factor: 2.5
+  peak_threshold: 0.55
+  rms_threshold: 0.08
+  rise_factor: 3.5
+  min_crest_factor: 3.4
+  min_sharpness: 0.55
+  max_pulse_ms: 120
   min_gap_ms: 180
-  max_gap_ms: 850
-  cooldown_ms: 1800
+  max_gap_ms: 650
+  cooldown_ms: 2500
   webhook_id: "jabra_double_clap_J1K1Tg2X4Y5v3aOoyLCQ7WJe"
 
 schema:
@@ -28,6 +31,9 @@ schema:
   peak_threshold: float
   rms_threshold: float
   rise_factor: float
+  min_crest_factor: float
+  min_sharpness: float
+  max_pulse_ms: int
   min_gap_ms: int
   max_gap_ms: int
   cooldown_ms: int
