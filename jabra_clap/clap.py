@@ -9,7 +9,7 @@ import urllib.request
 with open("/data/options.json", "r", encoding="utf-8") as f:
     cfg = json.load(f)
 
-device_match = str(cfg.get("device_match", "Jabra Link 390"))
+device_match = str(cfg.get("device_match", "auto") or "auto").strip()
 peak_threshold = float(cfg.get("peak_threshold", 0.55))
 rms_threshold = float(cfg.get("rms_threshold", 0.08))
 rise_factor = float(cfg.get("rise_factor", 3.5))
@@ -19,12 +19,20 @@ max_pulse_ms = int(cfg.get("max_pulse_ms", 120))
 min_gap = int(cfg.get("min_gap_ms", 180)) / 1000.0
 max_gap = int(cfg.get("max_gap_ms", 650)) / 1000.0
 cooldown = int(cfg.get("cooldown_ms", 2500)) / 1000.0
-webhook_id = str(cfg["webhook_id"])
+webhook_id = str(cfg.get("webhook_id") or "").strip()
+
+if not webhook_id:
+    raise RuntimeError(
+        "Keine Webhook-ID konfiguriert. Bitte in der App-Konfiguration "
+        "eine eigene zufällige Webhook-ID eintragen."
+    )
+
 
 def normalize(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
 
-def find_source() -> str:
+
+def get_sources():
     output = subprocess.check_output(
         ["pactl", "list", "short", "sources"],
         text=True
@@ -33,8 +41,7 @@ def find_source() -> str:
     print("Verfügbare Audioquellen:")
     print(output.rstrip())
 
-    wanted = normalize(device_match)
-    candidates = []
+    sources = []
 
     for line in output.splitlines():
         if not line.strip():
@@ -48,22 +55,64 @@ def find_source() -> str:
         if ".monitor" in name:
             continue
 
-        candidates.append(name)
+        sources.append(name)
 
-        if wanted in normalize(line):
+    return sources
+
+
+def find_source() -> str:
+    candidates = get_sources()
+
+    if not candidates:
+        raise RuntimeError("Keine nutzbare PulseAudio-Eingangsquelle gefunden.")
+
+    if normalize(device_match) in {"auto", "default", "automatic"}:
+        try:
+            default_source = subprocess.check_output(
+                ["pactl", "get-default-source"],
+                text=True
+            ).strip()
+        except Exception:
+            default_source = ""
+
+        if default_source in candidates:
+            print(f"Automatische Audioquelle: {default_source}")
+            return default_source
+
+        if len(candidates) == 1:
+            print(f"Einzige Audioquelle automatisch gewählt: {candidates[0]}")
+            return candidates[0]
+
+        raise RuntimeError(
+            "Automatische Auswahl nicht eindeutig. Bitte bei 'device_match' "
+            "einen eindeutigen Teil des gewünschten Mikrofonnamens eintragen. "
+            f"Gefundene Eingänge: {', '.join(candidates)}"
+        )
+
+    wanted = normalize(device_match)
+
+    for name in candidates:
+        if wanted in normalize(name):
             print(f"Passende Audioquelle gefunden: {name}")
             return name
 
     raise RuntimeError(
         f"Keine Audioquelle passend zu '{device_match}' gefunden. "
-        f"Gefundene Eingänge: {', '.join(candidates) or 'keine'}"
+        f"Gefundene Eingänge: {', '.join(candidates)}"
     )
 
-def trigger_webhook(peak: float, rms: float, crest: float, sharpness: float, gap_ms: int) -> None:
+
+def trigger_webhook(
+    peak: float,
+    rms: float,
+    crest: float,
+    sharpness: float,
+    gap_ms: int,
+) -> None:
     url = f"http://homeassistant:8123/api/webhook/{webhook_id}"
 
     payload = json.dumps({
-        "source": device_match,
+        "source": source,
         "peak": round(peak, 3),
         "rms": round(rms, 3),
         "crest_factor": round(crest, 2),
@@ -86,18 +135,20 @@ def trigger_webhook(peak: float, rms: float, crest: float, sharpness: float, gap
         f"(Abstand {gap_ms} ms)"
     )
 
+
 source = find_source()
 
 print(f"Benutze Mikrofon: {source}")
+print(f"Device Match: {device_match}")
 print(f"Peak Threshold: {peak_threshold}")
 print(f"RMS Threshold: {rms_threshold}")
 print(f"Rise Factor: {rise_factor}")
 print(f"Min Crest Factor: {min_crest_factor}")
 print(f"Min Sharpness: {min_sharpness}")
 print(f"Max Pulsdauer: {max_pulse_ms} ms")
-print(f"Doppelklatsch-Fenster: {int(min_gap*1000)}-{int(max_gap*1000)} ms")
-print(f"Cooldown: {int(cooldown*1000)} ms")
-print(f"Webhook-ID: {webhook_id}")
+print(f"Doppelklatsch-Fenster: {int(min_gap * 1000)}-{int(max_gap * 1000)} ms")
+print(f"Cooldown: {int(cooldown * 1000)} ms")
+print("Webhook: konfiguriert")
 
 proc = subprocess.Popen([
     "parec",
@@ -108,9 +159,8 @@ proc = subprocess.Popen([
     "--raw"
 ], stdout=subprocess.PIPE)
 
-chunk_samples = 320          # 20 ms bei 16 kHz
+chunk_samples = 320
 chunk_bytes = chunk_samples * 2
-chunk_ms = 20
 
 baseline = 0.01
 last_event = 0.0
@@ -123,9 +173,21 @@ pulse_rms_max = 0.0
 pulse_crest_max = 0.0
 pulse_sharpness_max = 0.0
 
-def classify_pulse(now: float):
+
+def reset_pulse():
     global pulse_active, pulse_start, pulse_peak, pulse_rms_max
-    global pulse_crest_max, pulse_sharpness_max, first_clap, last_event
+    global pulse_crest_max, pulse_sharpness_max
+
+    pulse_active = False
+    pulse_start = 0.0
+    pulse_peak = 0.0
+    pulse_rms_max = 0.0
+    pulse_crest_max = 0.0
+    pulse_sharpness_max = 0.0
+
+
+def classify_pulse(now: float):
+    global first_clap, last_event
 
     if not pulse_active:
         return
@@ -175,14 +237,13 @@ def classify_pulse(now: float):
 
                 elif gap > max_gap:
                     first_clap = now
-                    print("Zu großer Abstand -> dieser Klatscher wird neuer erster Klatscher")
+                    print(
+                        "Zu großer Abstand -> dieser Klatscher "
+                        "wird neuer erster Klatscher"
+                    )
 
-    pulse_active = False
-    pulse_start = 0.0
-    pulse_peak = 0.0
-    pulse_rms_max = 0.0
-    pulse_crest_max = 0.0
-    pulse_sharpness_max = 0.0
+    reset_pulse()
+
 
 try:
     while True:
@@ -202,19 +263,14 @@ try:
         if not samples:
             continue
 
-        # Grundwerte
         abs_samples = [abs(sample) for sample in samples]
         peak = max(abs_samples) / 32768.0
         rms = math.sqrt(
             sum(sample * sample for sample in samples) / len(samples)
         ) / 32768.0
 
-        # Crest Factor: Klatschen hat typischerweise einen deutlich höheren
-        # Spitzenwert als Durchschnittspegel.
         crest = peak / max(rms, 0.0001)
 
-        # "Sharpness": mittlere schnelle Sample-Änderung relativ zum Pegel.
-        # Breitbandige, scharfe Transienten (Klatschen) liegen höher als Sprache.
         if len(samples) > 1:
             diff_mean = sum(
                 abs(samples[i] - samples[i - 1])
@@ -227,11 +283,12 @@ try:
 
         now = time.monotonic()
 
-        # Baseline nur bei normalem Raumpegel langsam nachführen.
-        if not pulse_active and rms < max(rms_threshold * 0.75, baseline * 2.0):
+        if not pulse_active and rms < max(
+            rms_threshold * 0.75,
+            baseline * 2.0
+        ):
             baseline = baseline * 0.99 + rms * 0.01
 
-        # Kandidat startet nur bei deutlichem, plötzlichem Anstieg.
         start_candidate = (
             peak >= peak_threshold
             and rms >= rms_threshold
@@ -257,17 +314,10 @@ try:
 
             duration_ms = int((now - pulse_start) * 1000)
 
-            # Ein echter Klatscher fällt schnell wieder ab.
             if rms < rms_threshold * 0.45:
                 classify_pulse(now)
             elif duration_ms > max_pulse_ms:
-                # Zu lang = eher Sprache/Musik/anhaltendes Geräusch.
-                pulse_active = False
-                pulse_start = 0.0
-                pulse_peak = 0.0
-                pulse_rms_max = 0.0
-                pulse_crest_max = 0.0
-                pulse_sharpness_max = 0.0
+                reset_pulse()
 
         if first_clap is not None and now - first_clap > max_gap:
             first_clap = None

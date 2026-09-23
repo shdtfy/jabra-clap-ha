@@ -1,11 +1,25 @@
 # Changelog
 
-Alle wichtigen Änderungen an **Jabra Double Clap** werden hier dokumentiert.
+Alle wichtigen Änderungen an **Double Clap** werden hier dokumentiert.
+
+## 1.1.0
+
+- Projekt von **Jabra Double Clap** zu **Double Clap** umbenannt
+- App-Beschreibung hardwareunabhängig formuliert
+- Jabra wird nur noch als getestete Hardware geführt
+- Standard für `device_match` auf `auto` umgestellt
+- Automatische Auswahl der Standard-PulseAudio-Eingangsquelle ergänzt
+- Manuelle Auswahl anderer Mikrofone über `device_match` weiterhin möglich
+- Unterstützung anderer PulseAudio-kompatibler Mikrofone deutlicher dokumentiert
+- Webhook-ID wird nicht mehr im App-Protokoll ausgegeben
+- Neues Double-Clap-Branding und neues Logo
+- README, App-README und Dokumentation vollständig überarbeitet
+- Interner Slug `jabra_clap` bleibt aus Kompatibilitätsgründen bestehen
 
 ## 1.0.8
 
 - Feste Webhook-ID aus dem öffentlichen Repository entfernt
-- `webhook_id` muss jetzt pro Installation individuell vergeben werden
+- `webhook_id` muss pro Installation individuell vergeben werden
 - Webhook-ID wird in Home Assistant als Passwortfeld behandelt
 - Dokumentation zur Webhook-Sicherheit ergänzt
 - Öffentliche Beispiele auf neutrale Entity-IDs umgestellt

@@ -1,12 +1,14 @@
 # Webhook-Sicherheit
 
-Ab Version 1.0.8 enthält das öffentliche Repository **keine feste Webhook-ID mehr**.
+Double Clap enthält keine feste öffentliche Webhook-ID.
 
 Die `webhook_id` ist eine Pflichtangabe in der App-Konfiguration und wird in Home Assistant als Passwortfeld behandelt.
 
-Für deine eigene Installation kannst du zum Beispiel diese zufällig erzeugte ID verwenden:
+Erstelle für deine Installation eine eigene lange und zufällige ID.
 
-`jabra_double_clap_DEINE_ZUFALLS_ID`
+Beispiel:
+
+`double_clap_DEINE_ZUFALLS_ID`
 
 Verwende exakt dieselbe ID in deiner Home-Assistant-Automation:
 
@@ -19,4 +21,6 @@ triggers:
     local_only: true
 ```
 
-Behandle die Webhook-ID wie ein Passwort und veröffentliche sie nicht im Repository.
+Behandle die Webhook-ID wie ein Passwort und veröffentliche sie nicht.
+
+Double Clap gibt die konfigurierte Webhook-ID nicht im App-Protokoll aus.
