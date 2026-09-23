@@ -1,8 +1,7 @@
 name: "Jabra Double Clap"
 version: "1.0.4"
 slug: "jabra_clap"
-description: "Erkennt Doppelklatschen über einen Jabra-Link anhand kurzer, scharfer Impulse und triggert einen lokalen Home-Assistant-Webhook
-by Filo."
+description: "description: "Jabra Double Clap für Home Assistant • entwickelt von Filo""
 url: "https://github.com/shdtfy/jabra-clap-ha"
 stage: experimental
 startup: application
