@@ -1,7 +1,7 @@
 name: "Jabra Double Clap"
-version: "1.0.6"
+version: "1.0.7"
 slug: "jabra_clap"
-description: "description: "Jabra Double Clap für Home Assistant • entwickelt von Filo""
+description: "Jabra Double Clap für Home Assistant • entwickelt von Filo"
 url: "https://github.com/shdtfy/jabra-clap-ha"
 stage: experimental
 startup: application
